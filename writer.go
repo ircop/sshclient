@@ -24,7 +24,7 @@ func (c *SshClient) WriteRaw(cmd string) error {
 // Cmd is simple wrapper for "send command + read output until default prompt catched".
 // Returns output and error if any.
 func (c *SshClient) Cmd(cmd string) (string, error) {
-	if err := c.Write(cmd); err != nil {
+	if err := c.Write([]byte(cmd)); err != nil {
 		return "", err
 	}
 
