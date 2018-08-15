@@ -12,8 +12,8 @@ func (c *SshClient) Write(bytes []byte) error {
 }
 
 // WriteRaw is the same as write, but without adding '\n' at end of string
-func (c *SshClient) WriteRaw(cmd string) error {
-	_, err := c.inPipe.Write([]byte(cmd))
+func (c *SshClient) WriteRaw(bytes []byte) error {
+	_, err := c.inPipe.Write(bytes)
 	if err != nil {
 		return err
 	}
