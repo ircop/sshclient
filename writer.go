@@ -1,8 +1,9 @@
 package sshclient
 
 // Write command/text to ssh pipe
-func (c *SshClient) Write(cmd string) error {
-	_, err := c.inPipe.Write([]byte(cmd + "\n"))
+func (c *SshClient) Write(bytes []byte) error {
+	bytes = append(bytes, '\n')
+	_, err := c.inPipe.Write(bytes)
 	if err != nil {
 		return err
 	}
