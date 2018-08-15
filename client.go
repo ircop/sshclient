@@ -148,7 +148,10 @@ func (c *SshClient) Open(host string, port int) error {
 		return errors.Wrap(err, "Failed to request ssh shell")
 	}
 
-	return nil
+	// Wait for prompt just after login
+	_, err = c.ReadUntil(c.prompt)
+	
+	return err
 }
 
 // RegisterCallback registers new callback based on regex string. When current output string matches given
