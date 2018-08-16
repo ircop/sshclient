@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/google/goterm/term"
 	"regexp"
+	"bytes"
 )
 
 // callbackPattern struct handles callbacks that should be called when corresponding
@@ -35,6 +36,7 @@ type SshClient struct {
 	errPipe		io.Reader
 
 	reading		bool
+	buf			bytes.Buffer
 
 	patterns	[]callbackPattern
 }
@@ -168,4 +170,9 @@ func (c *SshClient) RegisterCallback(pattern string, callback func()) error {
 	})
 
 	return nil
+}
+
+// GetBuffer returns current buffer from reader as a string
+func (c *SshClient) GetBuffer() string {
+	return c.buf.String()
 }

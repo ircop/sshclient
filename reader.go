@@ -20,17 +20,18 @@ func (c *SshClient) ReadUntil(waitfor string) (string, error) {
 	})
 
 	//var result bytes.Buffer
-	result := make([]byte, 0)
+	c.buf.Reset()
+	//result := make([]byte, 0)
 	temp := make([]byte, 0)
 	tbuf := make([]byte, 81920)
 	totalBytes := 0
 
 	if waitfor == "" {
-		return string(result), fmt.Errorf(`Empty "waitfor" string given`)
+		return c.buf.String(), fmt.Errorf(`Empty "waitfor" string given`)
 	}
 	rePrompt, err := regexp.Compile(waitfor)
 	if err != nil {
-		return string(result), fmt.Errorf(`Cannot compile "waitfor" regexp`)
+		return c.buf.String(), fmt.Errorf(`Cannot compile "waitfor" regexp`)
 	}
 
 	inSequence := false
@@ -38,13 +39,13 @@ func (c *SshClient) ReadUntil(waitfor string) (string, error) {
 	for {
 		select {
 		case <- globalTout:
-			return string(result), fmt.Errorf("Operation timeout reached during read")
+			return c.buf.String(), fmt.Errorf("Operation timeout reached during read")
 		default:
 			n, err := c.outPipe.Read(tbuf)
 			totalBytes += n
 
 			if err != nil {
-				return string(result), err
+				return c.buf.String(), err
 			}
 
 			for i := 0; i < totalBytes; i++ {
@@ -69,7 +70,8 @@ func (c *SshClient) ReadUntil(waitfor string) (string, error) {
 					}
 				}
 
-				result = append(result, tbuf[i])
+				//result = append(result, tbuf[i])
+				c.buf.WriteByte(tbuf[i])
 				if len(c.patterns) > 0 {
 					temp = append(temp, tbuf[i])
 				}
@@ -85,8 +87,8 @@ func (c *SshClient) ReadUntil(waitfor string) (string, error) {
 				}
 			}
 
-			if rePrompt.Match(result) {
-				return string(result), nil
+			if rePrompt.Match(c.buf.Bytes()) {
+				return c.buf.String(), nil
 			}
 
 			tbuf = make([]byte, 81920)
@@ -94,6 +96,6 @@ func (c *SshClient) ReadUntil(waitfor string) (string, error) {
 		}
 	}
 
-	return string(result), nil
+	return c.buf.String(), nil
 }
 
