@@ -52,8 +52,12 @@ func New(tout int, user string, password string, prompt string) *SshClient {
 		Timeout:tout,
 		User:user,
 		Password:password,
-		prompt: prompt,
+		prompt: `(?msi:[\$%#>]$)`,
 		patterns: make([]callbackPattern, 0),
+	}
+
+	if prompt != "" {
+		c.prompt = prompt
 	}
 
 	c.TimeoutGlobal = c.Timeout * 2
