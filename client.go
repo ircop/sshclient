@@ -65,6 +65,11 @@ func New(tout int, user string, password string, prompt string) *SshClient {
 	return &c
 }
 
+// You may need to change password for enable (because prompt is same as login)
+func (c *SshClient) SetPassword(pw string) {
+	c.Password = pw
+}
+
 // SetPrompt allows you to change prompt without re-creating ssh client
 func (c *SshClient) SetPrompt(prompt string) {
 	c.prompt = prompt
