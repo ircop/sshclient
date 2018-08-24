@@ -50,7 +50,7 @@ func (c *SshClient) ReadUntil(waitfor string) (string, error) {
 
 			for i := 0; i < totalBytes; i++ {
 				// cut \r's
-				if tbuf[i] == 10 {
+				if tbuf[i] == 13 {
 					continue
 				}
 
