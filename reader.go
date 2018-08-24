@@ -4,7 +4,8 @@ import (
 	"time"
 	"fmt"
 	"regexp"
-	)
+	"strings"
+)
 
 // ReadUntil reads tcp stream until given prompt (should be valid regex string) catched.
 // All ESC-sequences are cutted out.
@@ -75,7 +76,6 @@ func (c *SshClient) ReadUntil(waitfor string) (string, error) {
 					}
 				}
 
-				//result = append(result, tbuf[i])
 				c.buf.WriteByte(tbuf[i])
 				if len(c.patterns) > 0 {
 					temp = append(temp, tbuf[i])
@@ -88,6 +88,11 @@ func (c *SshClient) ReadUntil(waitfor string) (string, error) {
 					if c.patterns[i].Re.Match(temp) {
 						c.patterns[i].Cb()
 						temp = make([]byte, 0)
+						// remove last line from buffer
+						lines := strings.Split(c.buf.String(), "\n")
+						lines = lines[:len(lines)-1]
+						c.buf.Reset()
+						c.buf.WriteString(strings.Join(lines, "\n"))
 					}
 				}
 			}
