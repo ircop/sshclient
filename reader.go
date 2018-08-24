@@ -49,6 +49,11 @@ func (c *SshClient) ReadUntil(waitfor string) (string, error) {
 			}
 
 			for i := 0; i < totalBytes; i++ {
+				// cut \r's
+				if tbuf[i] == 10 {
+					continue
+				}
+
 				// cut out escape sequences
 				if tbuf[i] == 27 {
 					inSequence = true
