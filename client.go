@@ -105,8 +105,8 @@ func (c *SshClient) Open(host string, port int) error {
 	config := ssh.ClientConfig{
 		User:				c.User,
 		Auth:				[]ssh.AuthMethod{
-								ssh.KeyboardInteractive(challenge),
 								ssh.PasswordCallback(func()(string, error){ return c.Password, nil }),
+								ssh.KeyboardInteractive(challenge),
 								ssh.Password(c.Password),
 							},
 		HostKeyCallback:	ssh.InsecureIgnoreHostKey(),
