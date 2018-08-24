@@ -112,7 +112,7 @@ func (c *SshClient) Open(host string, port int) error {
 		HostKeyCallback:	ssh.InsecureIgnoreHostKey(),
 		Timeout:			time.Second * time.Duration(c.Timeout),
 	}
-	config.Ciphers = append(config.Ciphers, "aes128-cbc", "3des-cbc", "aes128-ctr", "aes192-ctr", "aes256-ctr", "chacha20-poly1305@openssh.com", "aes128-gcm@openssh.com", "aes256-gcm@openssh.com")
+	config.Ciphers = append(config.Ciphers, "aes128-cbc", "aes128-ctr", "aes192-ctr", "aes256-ctr", "chacha20-poly1305@openssh.com", "aes128-gcm@openssh.com", "aes256-gcm@openssh.com")
 
 	c.sshClient, err = ssh.Dial("tcp", fmt.Sprintf("%s:%d", host, port), &config )
 	if err != nil {
