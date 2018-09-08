@@ -11,6 +11,7 @@ import (
 	"github.com/google/goterm/term"
 	"regexp"
 	"bytes"
+	"github.com/sasha-s/go-deadlock"
 )
 
 // callbackPattern struct handles callbacks that should be called when corresponding
@@ -39,6 +40,7 @@ type SshClient struct {
 	buf			bytes.Buffer
 
 	patterns	[]callbackPattern
+	mx			deadlock.Mutex
 }
 
 // New returns new instance of SshClient. Arguments are: connection timeout, username, password, prompt.
@@ -67,19 +69,25 @@ func New(tout int, user string, password string, prompt string) *SshClient {
 
 // You may need to change password for enable (because prompt is same as login)
 func (c *SshClient) SetPassword(pw string) {
+	c.mx.Lock()
 	c.Password = pw
+	c.mx.Unlock()
 }
 
 // SetPrompt allows you to change prompt without re-creating ssh client
 func (c *SshClient) SetPrompt(prompt string) {
+	c.mx.Lock()
 	c.prompt = prompt
+	c.mx.Unlock()
 }
 
 // GlobalTimeout sets timeout for app operations, where net.Conn deadline could not be useful.
 // For example stucking in pagination, while some network devices refreshing their telnet screen - so
 // we cannot reach read timeout.
 func (c *SshClient) GlobalTimeout(t int) {
+	c.mx.Lock()
 	c.TimeoutGlobal = t
+	c.mx.Unlock()
 }
 
 // Close disconnects ssh session and closes all connections.
@@ -110,7 +118,7 @@ func (c *SshClient) Open(host string, port int) error {
 								ssh.Password(c.Password),
 							},
 		HostKeyCallback:	ssh.InsecureIgnoreHostKey(),
-		Timeout:			time.Second * time.Duration(c.Timeout),
+		Timeout:			time.Second * time.Duration(c.TimeoutGlobal),
 	}
 	config.Ciphers = append(config.Ciphers, "aes128-ctr", "aes192-ctr", "aes256-ctr", "chacha20-poly1305@openssh.com", "aes128-gcm@openssh.com", "aes256-gcm@openssh.com")
 
@@ -173,15 +181,20 @@ func (c *SshClient) RegisterCallback(pattern string, callback func()) error {
 		return err
 	}
 
+	c.mx.Lock()
 	c.patterns = append(c.patterns, callbackPattern{
 		Cb:callback,
 		Re:re,
 	})
+	c.mx.Unlock()
 
 	return nil
 }
 
 // GetBuffer returns current buffer from reader as a string
 func (c *SshClient) GetBuffer() string {
-	return c.buf.String()
+	c.mx.Lock()
+	str := c.buf.String()
+	c.mx.Unlock()
+	return str
 }
