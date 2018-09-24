@@ -5,6 +5,7 @@ package sshclient
 import (
 	"golang.org/x/crypto/ssh"
 	"io"
+	"strings"
 	"time"
 	"fmt"
 	"github.com/pkg/errors"
@@ -134,7 +135,15 @@ func (c *SshClient) Open(host string, port int) error {
 
 	c.sshClient, err = ssh.Dial("tcp", fmt.Sprintf("%s:%d", host, port), &config )
 	if err != nil {
-		return errors.Wrap(err, "SSH dial failed")
+		if strings.Contains(err.Error(), "no common algorithm") {
+			config.Ciphers = []string{"aes128-cbc", "3des-cbc", "aes192-cbc", "aes256-cbc"}
+			c.sshClient, err = ssh.Dial("tcp", fmt.Sprintf("%s:%d", host, port), &config )
+			if err != nil {
+				return errors.Wrap(err, "SSH dial failed")
+			}
+		} else {
+			return errors.Wrap(err, "SSH dial failed")
+		}
 	}
 
 
