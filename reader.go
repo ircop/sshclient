@@ -9,17 +9,17 @@ import (
 // ReadUntil reads tcp stream until given prompt (should be valid regex string) catched.
 // All ESC-sequences are cutted out.
 func (c *SshClient) ReadUntil(waitfor string) (string, error) {
+//fmt.Printf("Reading until '%s'\n", waitfor)
+	// Implement handy global timeout, since x/crypto/ssh does not has one :(
+	c.mx.Lock()
+	c.reading = true
+	tout := c.TimeoutGlobal
+	c.mx.Unlock()
 	defer func() {
 		c.mx.Lock()
 		c.reading = false
 		c.mx.Unlock()
 	}()
-
-	c.mx.Lock()
-	tout := c.TimeoutGlobal
-	c.reading = true
-	c.mx.Unlock()
-
 	time.AfterFunc(time.Second * time.Duration(tout), func() {
 		c.mx.Lock()
 		if c.reading {
@@ -31,7 +31,6 @@ func (c *SshClient) ReadUntil(waitfor string) (string, error) {
 
 	//var result bytes.Buffer
 	c.buf.Reset()
-
 	//result := make([]byte, 0)
 	temp := make([]byte, 0)
 	tbuf := make([]byte, 81920)
@@ -48,9 +47,6 @@ func (c *SshClient) ReadUntil(waitfor string) (string, error) {
 
 	// escape sequences stuff
 	inSequence := false
-<<<<<<< HEAD
-	c.mx.Lock()
-=======
 	lastSeq := ""
 	reW, err := regexp.Compile(`^\[\d+D$`)
 	if err != nil {
@@ -58,9 +54,7 @@ func (c *SshClient) ReadUntil(waitfor string) (string, error) {
 	}
 	/////////////////////////
 
->>>>>>> 9deb2c8da8542faf39f762aedbef1e422eec3176
 	globalTout := time.After(time.Second * time.Duration(c.TimeoutGlobal))
-	c.mx.Unlock()
 	for {
 		select {
 		case <- globalTout:
@@ -69,7 +63,7 @@ func (c *SshClient) ReadUntil(waitfor string) (string, error) {
 			n, err := c.outPipe.Read(tbuf)
 			totalBytes += n
 
-			//fmt.Printf("%s", string(tbuf))
+//fmt.Printf("%s", string(tbuf))
 			//for i := range tbuf {
 			//	fmt.Printf("%s | %d\n", string(tbuf[i]), tbuf[i])
 			//}
